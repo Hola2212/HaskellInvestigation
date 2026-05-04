@@ -42,7 +42,6 @@ step grid =
     | c <- [0..width grid - 1] ]
   | r <- [0..height grid - 1] ]
 
--- NEW
 randomCell = do
   n <- randomRIO (0,1 :: Int)
   return (if n == 0 then Dead else Alive)
@@ -51,9 +50,17 @@ randomGrid h w =
   sequence [ sequence [randomCell | _ <- [1..w]]
            | _ <- [1..h] ]
 
+-- NEW
+simulate :: Grid -> IO ()
+simulate grid = do
+  printGrid grid
+  threadDelay 300000
+  let next = step grid
+  if next == grid
+    then putStrLn "Stable pattern reached."
+    else simulate next
+
 main :: IO ()
 main = do
   grid <- randomGrid 20 40
-  mapM_
-    (\g -> printGrid g >> threadDelay 300000)
-    (take 100 (iterate step grid))
+  simulate grid
