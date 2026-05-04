@@ -1,6 +1,7 @@
 module Main where
 
 import Control.Concurrent (threadDelay)
+import System.Random (randomRIO)
 
 data Cell = Alive | Dead deriving (Eq)
 type Grid = [[Cell]]
@@ -15,7 +16,6 @@ printGrid grid = do
 height = length
 width g = length (head g)
 
--- CHANGED: wrapping
 getCell grid (r,c) =
   let h = height grid
       w = width grid
@@ -42,16 +42,18 @@ step grid =
     | c <- [0..width grid - 1] ]
   | r <- [0..height grid - 1] ]
 
-glider =
-  [ [Dead, Alive, Dead, Dead, Dead]
-  , [Dead, Dead, Alive, Dead, Dead]
-  , [Alive, Alive, Alive, Dead, Dead]
-  , [Dead, Dead, Dead, Dead, Dead]
-  , [Dead, Dead, Dead, Dead, Dead]
-  ]
+-- NEW
+randomCell = do
+  n <- randomRIO (0,1 :: Int)
+  return (if n == 0 then Dead else Alive)
+
+randomGrid h w =
+  sequence [ sequence [randomCell | _ <- [1..w]]
+           | _ <- [1..h] ]
 
 main :: IO ()
-main =
+main = do
+  grid <- randomGrid 20 40
   mapM_
     (\g -> printGrid g >> threadDelay 300000)
-    (take 100 (iterate step glider))
+    (take 100 (iterate step grid))
