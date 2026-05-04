@@ -81,12 +81,12 @@ clearScreen = putStr "\ESC[2J\ESC[H"
 simulate grid = do
   clearScreen
   printGrid grid
-  threadDelay 300000
+  threadDelay 1000000
   let nextGrid = step grid
   if nextGrid == grid
     then putStrLn "Stable pattern reached."
     else simulate nextGrid
 
 main = do
-  grid <- randomGrid 20 40
+  grid <- randomGrid 40 60
   simulate grid
