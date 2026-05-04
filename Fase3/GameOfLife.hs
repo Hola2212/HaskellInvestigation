@@ -15,10 +15,11 @@ printGrid grid = do
 height = length
 width g = length (head g)
 
-getCell grid (r,c)
-  | r < 0 || r >= height grid = Dead
-  | c < 0 || c >= width grid  = Dead
-  | otherwise = (grid !! r) !! c
+-- CHANGED: wrapping
+getCell grid (r,c) =
+  let h = height grid
+      w = width grid
+  in (grid !! ((r+h) `mod` h)) !! ((c+w) `mod` w)
 
 neighbors =
   [(-1,-1),(-1,0),(-1,1),
