@@ -6,12 +6,17 @@ import System.Random (randomRIO)
 data Cell = Alive | Dead deriving (Eq)
 type Grid = [[Cell]]
 
-showCell Alive = 'O'
-showCell Dead  = '.'
+-- Colored cells
+showCell Alive = "\ESC[32m█\ESC[0m"
+showCell Dead  = "\ESC[90m█\ESC[0m"
 
 printGrid grid = do
-  putStrLn ""
-  mapM_ (putStrLn . map showCell) grid
+  let w = width grid
+      horizontal = "+" ++ replicate w '-' ++ "+"
+  putStrLn horizontal
+  mapM_ (\row ->
+    putStrLn ("|" ++ concatMap showCell row ++ "|")) grid
+  putStrLn horizontal
 
 height = length
 width g = length (head g)
@@ -50,9 +55,11 @@ randomGrid h w =
   sequence [ sequence [randomCell | _ <- [1..w]]
            | _ <- [1..h] ]
 
--- NEW
+clearScreen = putStr "\ESC[2J\ESC[H"
+
 simulate :: Grid -> IO ()
 simulate grid = do
+  clearScreen
   printGrid grid
   threadDelay 300000
   let next = step grid
