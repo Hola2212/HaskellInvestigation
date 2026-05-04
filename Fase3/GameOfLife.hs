@@ -6,68 +6,87 @@ import System.Random (randomRIO)
 data Cell = Alive | Dead deriving (Eq)
 type Grid = [[Cell]]
 
--- Colored cells
 showCell Alive = "\ESC[32m█\ESC[0m"
 showCell Dead  = "\ESC[90m█\ESC[0m"
 
 printGrid grid = do
-  let w = width grid
+  let w = length (head grid)
       horizontal = "+" ++ replicate w '-' ++ "+"
   putStrLn horizontal
-  mapM_ (\row ->
-    putStrLn ("|" ++ concatMap showCell row ++ "|")) grid
+  mapM_ (\row -> putStrLn ("|" ++ concatMap showCell row ++ "|")) grid
   putStrLn horizontal
 
-height = length
-width g = length (head g)
+-- Shifting
 
-getCell grid (r,c) =
-  let h = height grid
-      w = width grid
-  in (grid !! ((r+h) `mod` h)) !! ((c+w) `mod` w)
+shiftLeft (x:xs) = xs ++ [x]
+shiftLeft [] = []
 
-neighbors =
-  [(-1,-1),(-1,0),(-1,1),
-   (0,-1),        (0,1),
-   (1,-1),(1,0),(1,1)]
+shiftRight xs = last xs : init xs
 
-aliveNeighbors grid (r,c) =
-  length [() | (dr,dc) <- neighbors,
-               getCell grid (r+dr,c+dc) == Alive]
+shiftUp (r:rs) = rs ++ [r]
+shiftUp [] = []
 
-nextCell grid pos =
-  case (getCell grid pos, aliveNeighbors grid pos) of
-    (Alive,2) -> Alive
-    (Alive,3) -> Alive
-    (Dead,3)  -> Alive
-    _         -> Dead
+shiftDown g = last g : init g
 
-step grid =
-  [ [ nextCell grid (r,c)
-    | c <- [0..width grid - 1] ]
-  | r <- [0..height grid - 1] ]
+neighborsGrids g =
+  [ shiftUp g
+  , shiftDown g
+  , map shiftLeft g
+  , map shiftRight g
+  , map shiftLeft (shiftUp g)
+  , map shiftRight (shiftUp g)
+  , map shiftLeft (shiftDown g)
+  , map shiftRight (shiftDown g)
+  ]
+
+-- Conversion
+
+toInt Alive = 1
+toInt Dead  = 0
+
+addGrids = zipWith (zipWith (+))
+
+zeroGrid :: Grid -> [[Int]]
+zeroGrid g = map (map (const 0)) g
+
+sumNeighbors :: Grid -> [[Int]]
+sumNeighbors g =
+  foldr addGrids (zeroGrid g)
+    (map (map (map toInt)) (neighborsGrids g))
+
+-- Rules
+
+next Alive 2 = Alive
+next Alive 3 = Alive
+next Dead  3 = Alive
+next _     _ = Dead
+
+step g =
+  zipWith (zipWith next) g (sumNeighbors g)
+
+-- Random grid
 
 randomCell = do
   n <- randomRIO (0,1 :: Int)
   return (if n == 0 then Dead else Alive)
 
 randomGrid h w =
-  sequence [ sequence [randomCell | _ <- [1..w]]
+  sequence [ sequence [ randomCell | _ <- [1..w] ]
            | _ <- [1..h] ]
+
+-- Simulation
 
 clearScreen = putStr "\ESC[2J\ESC[H"
 
-simulate :: Grid -> IO ()
 simulate grid = do
   clearScreen
   printGrid grid
   threadDelay 300000
-  let next = step grid
-  if next == grid
+  let nextGrid = step grid
+  if nextGrid == grid
     then putStrLn "Stable pattern reached."
-    else simulate next
+    else simulate nextGrid
 
-main :: IO ()
 main = do
   grid <- randomGrid 20 40
   simulate grid
