@@ -15,7 +15,7 @@ data Clasificacion = Regular | Bueno | MuyBueno | Excelente
     deriving (Show, Eq, Ord)
 
 -- Un libro tiene título, autor, año, género y calificación (1-100)
-    data Libro = Libro
+data Libro = Libro
     { titulo       :: String
     , autor        :: String
     , anio         :: Int

@@ -40,8 +40,8 @@ promedio :: BST Libro -> Double
 promedio Vacio = 0.0
 promedio bst =
     let libros = inOrder bst
-            total = fromIntegral (sum (map calificacion libros)) :: Double
-            cantidad = fromIntegral (length libros)                                 :: Double
+        total    = fromIntegral (sum (map calificacion libros)) :: Double
+        cantidad = fromIntegral (length libros)                 :: Double
     in total / cantidad
 
 -- Clasificar un libro según su calificación
@@ -56,8 +56,8 @@ clasificar l
 contarPorClasificacion :: BST Libro -> [(Clasificacion, Int)]
 contarPorClasificacion bst =
     let clases = map clasificar (inOrder bst)
-            todas    = [Regular, Bueno, MuyBueno, Excelente]
-            contar c = (c, length (filter (== c) clases))
+        todas    = [Regular, Bueno, MuyBueno, Excelente]
+        contar c = (c, length (filter (== c) clases))
     in map contar todas
 
 -- Géneros presentes en el catálogo (sin repetir)
@@ -80,10 +80,10 @@ masReciente bst =
 actualizarCalificacion :: String -> Int -> BST Libro -> BST Libro
 actualizarCalificacion tit nuevaCal bst =
     let libros = inOrder bst
-            sinLibro = filter (\l -> titulo l /= tit) libros
+        sinLibro = filter (\l -> titulo l /= tit) libros
     in case filter (\l -> titulo l == tit) libros of
-            [] -> bst
-            (l:_) -> desdeLista (l { calificacion = nuevaCal } : sinLibro)
+        [] -> bst
+        (l:_) -> desdeLista (l { calificacion = nuevaCal } : sinLibro)
 
 -- Fusionar dos catálogos en uno
 fusionar :: BST Libro -> BST Libro -> BST Libro
